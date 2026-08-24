@@ -1,0 +1,26 @@
+Regime-conditional optimisation of the 5-window ORB portfolio
+windows: h01_r60_t3, h02_r15_t3, h06_r30_t3, h05_r60_t2, h13_r60_t2
+base sizing 0.02 lots/window; vol target 0.816% (trailing 20 sessions, shifted 1)
+data 2024-01-02 .. 2026-07-31, 3,222 trades
+
+=== fixed vs volatility-targeted sizing, by period ===
+        period       sizing  trades  days      net  per_day     maxDD  maxDD_pct  sharpe  pos_days_pct
+         TRAIN        fixed    1876   386 4,851.75    12.57   -474.12      -3.16    3.31         53.11
+         TRAIN vol-targeted    1876   386 4,131.24    10.70   -384.55      -2.70    3.14         53.11
+       HOLDOUT        fixed    1233   255 5,189.94    20.35 -1,481.94      -9.67    2.13         50.20
+       HOLDOUT vol-targeted    1233   255 2,699.77    10.59   -862.13      -6.73    1.91         50.20
+VIRGIN 2026-07        fixed     113    23   266.58    11.59   -350.72      -3.42    1.70         56.52
+VIRGIN 2026-07 vol-targeted     113    23   172.57     7.50   -192.21      -1.89    1.90         56.52
+
+FULL SAMPLE fixed         net     10,308  maxDD    -1,482 (-7.3%)  Sharpe 2.31  positive days 52.1%
+FULL SAMPLE vol-targeted  net      7,004  maxDD      -862 (-5.1%)  Sharpe 2.42  positive days 52.1%
+
+=== by year ===
+      trades  net_fixed  net_voltgt  avg_range  avg_scale
+year                                                     
+2024    1246   2,055.70    1,956.76       6.11       1.01
+2025    1258   3,361.24    2,740.44      11.60       0.88
+2026     718   4,891.33    2,306.39      23.10       0.52
+
+VIRGIN 2026-07 fixed         113 trades over 23 days, net      267, P(mean>0) = 70.1%
+VIRGIN 2026-07 vol-targeted  113 trades over 23 days, net      173, P(mean>0) = 71.9%

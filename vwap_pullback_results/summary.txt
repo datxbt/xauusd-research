@@ -1,0 +1,520 @@
+VWAP Pullback (5-minute) backtest
+data      : C:\Users\thanh\Downloads\TradingProject\Monthly_Tick_Data
+files     : 31  (Exness_XAUUSD_Raw_Spread_2024_01.csv .. Exness_XAUUSD_Raw_Spread_2026_07.csv)
+sessions  : 664   bars: 5m   fills resolved on 5s sub-bars
+session   : VWAP resets at 00:00 UTC
+costs     : real bid/ask spread + 7.0 USD/lot round turn + 0.0 USD/side slippage
+sizing    : 0.10 lots fixed   start equity 10,000.00
+
+--- thr0.2_x1 ---
+threshold 0.20%   stop 0.20%   confirm=none   vwap=typical/equal
+trades                   6,672   per day              10.05
+win rate                35.85%   profit factor        0.919
+hit VWAP (TP)           30.67%   stopped out         62.72%
+net P&L             -25,384.48   commissions       4,670.40
+gross profit        288,340.08   gross loss     -313,724.56
+expectancy               -3.80   in R                -0.045
+avg win                 120.54   avg loss            -73.30
+max drawdown        -26,186.58   (-246.63%)
+equity               10,000.00 -> -15,384.48  (-253.84%, CAGR nan%)
+sharpe (daily)          -1.379   avg bars held         16.7
+
+by year:
+      trades   net_pnl  win_rate
+year                            
+2024    1780 -5,777.72     39.78
+2025    2461 -9,776.86     36.90
+2026    2431 -9,829.90     31.92
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long     3263  -8,832.50     35.49
+short    3409 -16,551.99     36.20
+
+by exit:
+             size         sum   mean
+exit_reason                         
+session_end   441   35,351.81  80.16
+sl           4185 -311,844.17 -74.51
+tp           2046  251,107.87 122.73
+
+--- thr0.2_x1.5 ---
+threshold 0.20%   stop 0.30%   confirm=none   vwap=typical/equal
+trades                   5,139   per day               7.74
+win rate                46.58%   profit factor        0.922
+hit VWAP (TP)           40.46%   stopped out         50.83%
+net P&L             -23,107.35   commissions       3,597.30
+gross profit        274,628.88   gross loss     -297,736.23
+expectancy               -4.50   in R                -0.036
+avg win                 114.72   avg loss           -108.46
+max drawdown        -24,086.68   (-223.12%)
+equity               10,000.00 -> -13,107.35  (-231.07%, CAGR nan%)
+sharpe (daily)          -1.296   avg bars held         22.1
+
+by year:
+      trades   net_pnl  win_rate
+year                            
+2024    1375 -5,083.97     51.05
+2025    1886 -8,807.58     47.83
+2026    1878 -9,215.80     42.07
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long     2536  -8,460.62     46.06
+short    2603 -14,646.73     47.10
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   448   31,217.29   69.68
+sl           2612 -294,262.31 -112.66
+tp           2079  239,937.67  115.41
+
+--- thr0.2_x2 ---
+threshold 0.20%   stop 0.40%   confirm=none   vwap=typical/equal
+trades                   4,392   per day               6.61
+win rate                53.32%   profit factor        0.911
+hit VWAP (TP)           47.52%   stopped out         41.87%
+net P&L             -25,344.12   commissions       3,074.40
+gross profit        259,946.34   gross loss     -285,290.45
+expectancy               -5.77   in R                -0.036
+avg win                 110.99   avg loss           -139.17
+max drawdown        -26,212.30   (-245.85%)
+equity               10,000.00 -> -15,344.12  (-253.44%, CAGR nan%)
+sharpe (daily)          -1.362   avg bars held         26.1
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024    1184  -4,905.37     56.59
+2025    1616 -11,230.78     54.27
+2026    1592  -9,207.96     49.94
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long     2162  -9,759.72     53.33
+short    2230 -15,584.40     53.32
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   466   24,287.34   52.12
+sl           1839 -277,336.90 -150.81
+tp           2087  227,705.45  109.11
+
+--- thr0.3_x1 ---
+threshold 0.30%   stop 0.30%   confirm=none   vwap=typical/equal
+trades                   3,810   per day               5.90
+win rate                40.84%   profit factor        0.925
+hit VWAP (TP)           32.97%   stopped out         56.40%
+net P&L             -18,469.38   commissions       2,667.00
+gross profit        229,385.31   gross loss     -247,854.69
+expectancy               -4.85   in R                -0.038
+avg win                 147.42   avg loss           -109.96
+max drawdown        -19,518.05   (-179.65%)
+equity               10,000.00 -> -8,469.38  (-184.69%, CAGR nan%)
+sharpe (daily)          -1.064   avg bars held         24.2
+
+by year:
+      trades   net_pnl  win_rate
+year                            
+2024     961 -3,188.65     46.10
+2025    1380 -6,053.66     42.32
+2026    1469 -9,227.07     36.01
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long     1882  -6,081.23     40.22
+short    1928 -12,388.14     41.44
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   405   31,297.43   77.28
+sl           2149 -244,797.67 -113.91
+tp           1256  195,030.86  155.28
+
+--- thr0.3_x1.5 ---
+threshold 0.30%   stop 0.45%   confirm=none   vwap=typical/equal
+trades                   3,016   per day               4.67
+win rate                50.27%   profit factor        0.898
+hit VWAP (TP)           42.04%   stopped out         43.67%
+net P&L             -24,156.49   commissions       2,111.20
+gross profit        212,167.04   gross loss     -236,323.53
+expectancy               -8.01   in R                -0.040
+avg win                 139.95   avg loss           -157.55
+max drawdown        -25,729.74   (-235.87%)
+equity               10,000.00 -> -14,156.49  (-241.56%, CAGR nan%)
+sharpe (daily)          -1.372   avg bars held         30.9
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024     757  -2,167.27     54.95
+2025    1089  -6,302.41     52.43
+2026    1170 -15,686.81     45.21
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long     1493 -12,723.87     49.30
+short    1523 -11,432.62     51.21
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   431   22,669.29   52.60
+sl           1317 -228,565.55 -173.55
+tp           1268  181,739.77  143.33
+
+--- thr0.3_x2 ---
+threshold 0.30%   stop 0.60%   confirm=none   vwap=typical/equal
+trades                   2,576   per day               3.99
+win rate                57.18%   profit factor        0.900
+hit VWAP (TP)           49.61%   stopped out         33.42%
+net P&L             -21,589.74   commissions       1,803.20
+gross profit        193,808.07   gross loss     -215,397.81
+expectancy               -8.38   in R                -0.031
+avg win                 131.57   avg loss           -195.28
+max drawdown        -23,098.11   (-208.33%)
+equity               10,000.00 -> -11,589.74  (-215.90%, CAGR nan%)
+sharpe (daily)          -1.104   avg bars held         36.4
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024     669  -1,790.02     59.79
+2025     934  -6,778.33     59.85
+2026     973 -13,021.39     52.83
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long     1268  -9,686.15     56.78
+short    1308 -11,903.59     57.57
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   437   13,186.69   30.18
+sl            861 -201,210.93 -233.69
+tp           1278  166,434.50  130.23
+
+--- thr0.5_x1 ---
+threshold 0.50%   stop 0.50%   confirm=none   vwap=typical/equal
+trades                   1,698   per day               3.05
+win rate                44.99%   profit factor        0.904
+hit VWAP (TP)           32.10%   stopped out         46.35%
+net P&L             -15,695.83   commissions       1,188.60
+gross profit        147,724.20   gross loss     -163,420.03
+expectancy               -9.24   in R                -0.041
+avg win                 193.36   avg loss           -174.97
+max drawdown        -17,504.59   (-163.56%)
+equity               10,000.00 -> -5,695.83  (-156.96%, CAGR nan%)
+sharpe (daily)          -1.035   avg bars held         37.3
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024     386  -1,974.33     50.52
+2025     593  -2,825.29     47.39
+2026     719 -10,896.21     40.06
+
+by side:
+       trades   net_pnl  win_rate
+dir                              
+long      875 -9,673.51     43.66
+short     823 -6,022.32     46.42
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   366   20,102.89   54.93
+sl            787 -155,154.54 -197.15
+tp            545  119,355.81  219.00
+
+--- thr0.5_x1.5 ---
+threshold 0.50%   stop 0.75%   confirm=none   vwap=typical/equal
+trades                   1,378   per day               2.47
+win rate                52.76%   profit factor        0.912
+hit VWAP (TP)           39.99%   stopped out         32.66%
+net P&L             -13,200.64   commissions         964.60
+gross profit        136,050.54   gross loss     -149,251.18
+expectancy               -9.58   in R                -0.030
+avg win                 187.14   avg loss           -229.26
+max drawdown        -15,219.81   (-141.38%)
+equity               10,000.00 -> -3,200.64  (-132.01%, CAGR nan%)
+sharpe (daily)          -0.846   avg bars held         46.4
+
+by year:
+      trades   net_pnl  win_rate
+year                            
+2024     324 -2,838.98     53.70
+2025     478 -2,447.16     54.18
+2026     576 -7,914.50     51.04
+
+by side:
+       trades   net_pnl  win_rate
+dir                              
+long      705 -7,673.75     53.19
+short     673 -5,526.89     52.30
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   377   11,381.01   30.19
+sl            450 -135,050.45 -300.11
+tp            551  110,468.80  200.49
+
+--- thr0.5_x2 ---
+threshold 0.50%   stop 1.00%   confirm=none   vwap=typical/equal
+trades                   1,223   per day               2.20
+win rate                56.50%   profit factor        0.886
+hit VWAP (TP)           45.05%   stopped out         23.88%
+net P&L             -16,146.96   commissions         856.10
+gross profit        126,012.49   gross loss     -142,159.45
+expectancy              -13.20   in R                -0.029
+avg win                 182.36   avg loss           -267.22
+max drawdown        -18,047.34   (-167.35%)
+equity               10,000.00 -> -6,146.96  (-161.47%, CAGR nan%)
+sharpe (daily)          -1.049   avg bars held         52.4
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024     287  -2,272.83     56.10
+2025     430  -2,589.93     57.67
+2026     506 -11,284.20     55.73
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long      617 -10,206.56     56.08
+short     606  -5,940.40     56.93
+
+by exit:
+             size         sum    mean
+exit_reason                          
+session_end   380      -27.24   -0.07
+sl            292 -119,806.23 -410.30
+tp            551  103,686.51  188.18
+
+--- thr0.75_x1 ---
+threshold 0.75%   stop 0.75%   confirm=none   vwap=typical/equal
+trades                     779   per day               2.01
+win rate                47.63%   profit factor        0.892
+hit VWAP (TP)           26.57%   stopped out         38.77%
+net P&L             -11,007.28   commissions         545.30
+gross profit         90,711.53   gross loss     -101,718.81
+expectancy              -14.13   in R                -0.041
+avg win                 244.51   avg loss           -249.31
+max drawdown        -13,131.28   (-121.04%)
+equity               10,000.00 -> -1,007.28  (-110.07%, CAGR nan%)
+sharpe (daily)          -1.027   avg bars held         48.5
+
+by year:
+      trades   net_pnl  win_rate
+year                            
+2024     164 -1,379.86     51.83
+2025     254 -1,172.64     51.57
+2026     361 -8,454.77     42.94
+
+by side:
+       trades   net_pnl  win_rate
+dir                              
+long      428 -8,824.53     47.66
+short     351 -2,182.75     47.58
+
+by exit:
+             size        sum    mean
+exit_reason                         
+session_end   270  16,070.11   59.52
+sl            302 -93,019.30 -308.01
+tp            207  65,941.91  318.56
+
+--- thr0.75_x1.5 ---
+threshold 0.75%   stop 1.12%   confirm=none   vwap=typical/equal
+trades                     644   per day               1.66
+win rate                53.57%   profit factor        0.864
+hit VWAP (TP)           32.14%   stopped out         25.00%
+net P&L             -13,101.13   commissions         450.80
+gross profit         82,919.30   gross loss      -96,020.43
+expectancy              -20.34   in R                -0.039
+avg win                 240.35   avg loss           -321.14
+max drawdown        -15,082.13   (-139.02%)
+equity               10,000.00 -> -3,101.13  (-131.01%, CAGR nan%)
+sharpe (daily)          -1.142   avg bars held         58.9
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024     140  -1,451.05     53.57
+2025     212    -790.37     57.55
+2026     292 -10,859.71     50.68
+
+by side:
+       trades   net_pnl  win_rate
+dir                              
+long      347 -8,715.60     53.89
+short     297 -4,385.53     53.20
+
+by exit:
+             size        sum    mean
+exit_reason                         
+session_end   276   2,762.61   10.01
+sl            161 -77,658.58 -482.35
+tp            207  61,794.84  298.53
+
+--- thr0.75_x2 ---
+threshold 0.75%   stop 1.50%   confirm=none   vwap=typical/equal
+trades                     588   per day               1.52
+win rate                55.95%   profit factor        0.858
+hit VWAP (TP)           35.37%   stopped out         16.67%
+net P&L             -12,825.91   commissions         411.60
+gross profit         77,235.52   gross loss      -90,061.43
+expectancy              -21.81   in R                -0.030
+avg win                 234.76   avg loss           -347.73
+max drawdown        -15,028.77   (-138.53%)
+equity               10,000.00 -> -2,825.91  (-128.26%, CAGR nan%)
+sharpe (daily)          -1.123   avg bars held         64.7
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024     134  -1,093.08     53.73
+2025     196    -329.16     61.22
+2026     258 -11,403.67     53.10
+
+by side:
+       trades   net_pnl  win_rate
+dir                              
+long      309 -8,413.32     57.28
+short     279 -4,412.60     54.48
+
+by exit:
+             size        sum    mean
+exit_reason                         
+session_end   282  -6,951.49  -24.65
+sl             98 -63,601.88 -649.00
+tp            208  57,727.46  277.54
+
+--- thr1_x1 ---
+threshold 1.00%   stop 1.00%   confirm=none   vwap=typical/equal
+trades                     431   per day               1.77
+win rate                45.94%   profit factor        0.822
+hit VWAP (TP)           22.27%   stopped out         33.87%
+net P&L             -13,107.39   commissions         301.70
+gross profit         60,731.46   gross loss      -73,838.85
+expectancy              -30.41   in R                -0.059
+avg win                 306.72   avg loss           -316.90
+max drawdown        -16,153.40   (-143.66%)
+equity               10,000.00 -> -3,107.39  (-131.07%, CAGR nan%)
+sharpe (daily)          -1.501   avg bars held         56.4
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024      80    -529.70     50.00
+2025     134  -2,023.46     52.24
+2026     217 -10,554.23     40.55
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long      256 -13,097.34     44.53
+short     175     -10.05     48.00
+
+by exit:
+             size        sum    mean
+exit_reason                         
+session_end   189   9,588.96   50.74
+sl            146 -63,052.56 -431.87
+tp             96  40,356.22  420.38
+
+--- thr1_x1.5 ---
+threshold 1.00%   stop 1.50%   confirm=none   vwap=typical/equal
+trades                     358   per day               1.47
+win rate                49.44%   profit factor        0.800
+hit VWAP (TP)           26.82%   stopped out         20.39%
+net P&L             -13,023.35   commissions         250.60
+gross profit         52,243.79   gross loss      -65,267.14
+expectancy              -36.38   in R                -0.048
+avg win                 295.16   avg loss           -360.59
+max drawdown        -15,793.20   (-141.25%)
+equity               10,000.00 -> -3,023.35  (-130.23%, CAGR nan%)
+sharpe (daily)          -1.661   avg bars held         68.2
+
+by year:
+      trades    net_pnl  win_rate
+year                             
+2024      73    -661.48     50.68
+2025     110  -1,344.23     58.18
+2026     175 -11,017.64     43.43
+
+by side:
+       trades    net_pnl  win_rate
+dir                               
+long      199 -10,738.36     50.25
+short     159  -2,284.99     48.43
+
+by exit:
+             size        sum    mean
+exit_reason                         
+session_end   189    -899.36   -4.76
+sl             73 -48,387.46 -662.84
+tp             96  36,263.48  377.74
+
+--- thr1_x2 ---
+threshold 1.00%   stop 2.00%   confirm=none   vwap=typical/equal
+trades                     332   per day               1.37
+win rate                51.81%   profit factor        0.831
+hit VWAP (TP)           28.92%   stopped out         12.95%
+net P&L             -10,373.35   commissions         232.40
+gross profit         50,928.05   gross loss      -61,301.41
+expectancy              -31.25   in R                -0.030
+avg win                 296.09   avg loss           -383.13
+max drawdown        -12,920.05   (-115.55%)
+equity               10,000.00 -> -373.35  (-103.73%, CAGR nan%)
+sharpe (daily)          -1.399   avg bars held         73.7
+
+by year:
+      trades   net_pnl  win_rate
+year                            
+2024      72   -710.72     50.00
+2025     103 -1,235.77     58.25
+2026     157 -8,426.86     48.41
+
+by side:
+       trades   net_pnl  win_rate
+dir                              
+long      180 -8,436.07     53.89
+short     152 -1,937.28     49.34
+
+by exit:
+             size        sum    mean
+exit_reason                         
+session_end   193  -6,885.32  -35.68
+sl             43 -39,205.66 -911.76
+tp             96  35,717.63  372.06
+
+=== parameter sweep (sorted by net P&L) ===
+       param  trades  win_rate_pct  profit_factor    net_pnl  expectancy  max_drawdown_pct  sharpe_daily
+     thr1_x2     332         51.81           0.83 -10,373.35      -31.25           -115.55         -1.40
+  thr0.75_x1     779         47.63           0.89 -11,007.28      -14.13           -121.04         -1.03
+  thr0.75_x2     588         55.95           0.86 -12,825.91      -21.81           -138.53         -1.12
+   thr1_x1.5     358         49.44           0.80 -13,023.35      -36.38           -141.25         -1.66
+thr0.75_x1.5     644         53.57           0.86 -13,101.13      -20.34           -139.02         -1.14
+     thr1_x1     431         45.94           0.82 -13,107.39      -30.41           -143.66         -1.50
+ thr0.5_x1.5    1378         52.76           0.91 -13,200.64       -9.58           -141.38         -0.85
+   thr0.5_x1    1698         44.99           0.90 -15,695.83       -9.24           -163.56         -1.03
+   thr0.5_x2    1223         56.50           0.89 -16,146.96      -13.20           -167.35         -1.05
+   thr0.3_x1    3810         40.84           0.93 -18,469.38       -4.85           -179.65         -1.06
+   thr0.3_x2    2576         57.18           0.90 -21,589.74       -8.38           -208.33         -1.10
+ thr0.2_x1.5    5139         46.58           0.92 -23,107.35       -4.50           -223.12         -1.30
+ thr0.3_x1.5    3016         50.27           0.90 -24,156.49       -8.01           -235.87         -1.37
+   thr0.2_x2    4392         53.32           0.91 -25,344.12       -5.77           -245.85         -1.36
+   thr0.2_x1    6672         35.85           0.92 -25,384.48       -3.80           -246.63         -1.38
