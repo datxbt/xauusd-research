@@ -1,3 +1,5 @@
+**English** · [Tiếng Việt](README.vi.md)
+
 # xauusd-research
 
 Strategy research on XAUUSD (spot gold) built directly on Exness raw tick data
