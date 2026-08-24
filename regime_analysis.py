@@ -13,7 +13,7 @@ Direction of price is deliberately NOT projected: daily returns show no
 exploitable autocorrelation, so any number would be invented.  Volatility and
 liquidity are projected because they demonstrably cluster.
 
-    python regime_analysis.py --sessions vwap_pullback_results/sessions.csv
+    python regime_analysis.py --sessions market_context/sessions.csv
 """
 
 from __future__ import annotations
@@ -57,7 +57,6 @@ def year_table(s: pd.DataFrame) -> pd.DataFrame:
             "trend_days_pct": (g["trendiness"] > 0.6).mean() * 100,
             "chop_days_pct": (g["trendiness"] < 0.3).mean() * 100,
             "up_days_pct": (ret > 0).mean() * 100,
-            "vwap_crosses": g["vwap_crosses"].mean(),
             "daily_ac1": float(pd.Series(dret).autocorr(1)) if len(dret) > 5 else np.nan,
             "hurst": hurst(logc),
             "avg_spread": g["avg_spread"].mean(),
@@ -126,8 +125,8 @@ def project(s: pd.DataFrame, metrics: list, horizon_months: int = 6) -> pd.DataF
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="XAUUSD regime characterisation & projection")
-    ap.add_argument("--sessions", default="vwap_pullback_results/sessions.csv")
-    ap.add_argument("--hourly", default="vwap_pullback_results/hourly_context.csv")
+    ap.add_argument("--sessions", default="market_context/sessions.csv")
+    ap.add_argument("--hourly", default="market_context/hourly_context.csv")
     ap.add_argument("--outdir", default="regime_results")
     args = ap.parse_args(argv)
 
@@ -148,15 +147,15 @@ def main(argv=None) -> int:
     q = s.set_index("session_date").resample("QE").agg(
         ret=("ret_pct", "sum"), range_pct=("range_pct", "mean"),
         rvol=("realized_vol_pct", "mean"), trendiness=("trendiness", "mean"),
-        crosses=("vwap_crosses", "mean"), spread=("avg_spread", "mean"),
+        spread=("avg_spread", "mean"),
         ticks=("ticks", "mean"))
     q.index = q.index.to_period("Q")
     rep.append("=== quarterly path ===")
     rep.append(q.to_string(float_format=fmt))
     rep.append("")
 
-    metrics = ["range_pct", "realized_vol_pct", "trendiness", "vwap_crosses",
-               "avg_spread", "ticks", "ret_pct", "max_dev_pct"]
+    metrics = ["range_pct", "realized_vol_pct", "trendiness",
+               "avg_spread", "ticks", "ret_pct"]
     pt = persistence(s, metrics).sort_values("monthly_ac1", ascending=False)
     pt.to_csv(os.path.join(args.outdir, "persistence.csv"))
     rep.append("=== PART 2: which characteristics persist (are forecastable at all)? ===")

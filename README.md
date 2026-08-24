@@ -35,20 +35,13 @@ stop at the opposite side, target a multiple of the range width. The prior is
 microstructural: overnight information accumulates in thin liquidity and gets
 repriced in a burst when a major session opens.
 
-**VWAP pullback** ([backtest_vwap_pullback.py](backtest_vwap_pullback.py)) —
-the session VWAP resets daily; when a 5-minute close stretches a threshold
-away from it, fade the move back toward VWAP. Entry on the next bar's open,
-target the (still moving) VWAP, stop beyond the entry.
-
 ## Layout
 
 | path | what it is |
 |---|---|
 | [backtest_orb.py](backtest_orb.py) | pre-registered ORB test, 18-config grid |
-| [backtest_vwap_pullback.py](backtest_vwap_pullback.py) | VWAP pullback backtester + the shared tick loader |
-| [search_strategy.py](search_strategy.py) | hypothesis-driven search for a deployable VWAP variant |
+| [tickdata.py](tickdata.py) | shared engine: ticks → sub-bars → sessions, sizing and metrics |
 | [session_context.py](session_context.py) | per-session character table (trend/range, vol, spread) to join onto trades |
-| [analyze_vwap_results.py](analyze_vwap_results.py) | which circumstances actually pay — expectancy by hour, weekday, regime |
 | [optimize_time_windows.py](optimize_time_windows.py) | 216-window ORB sweep (24 hours × 3 ranges × 3 targets), scored on both periods |
 | [regime_analysis.py](regime_analysis.py) | what each year looked like, which characteristics persist, and a projection for the ones that do |
 | [optimize_for_regime.py](optimize_for_regime.py) | conditions the ORB portfolio on volatility — the only forecastable input |
@@ -56,7 +49,7 @@ target the (still moving) VWAP, stop beyond the entry.
 | [XAUUSD_SessionBreakout.mq5](XAUUSD_SessionBreakout.mq5) | MT5 EA: the 8-window portfolio, live |
 | [tick_synth/](tick_synth/) | synthetic tick generator — see its own [README](tick_synth/README.md) |
 
-Results live in `orb_results/`, `vwap_pullback_results/`, `regime_results/`
+Results live in `orb_results/`, `regime_results/`, `market_context/`
 and `spread_stats/`, and are committed as the research record.
 
 ## What regime_analysis established
@@ -65,7 +58,7 @@ This one result shapes everything downstream, so it belongs up front:
 
 | forecastable (AR1 0.60–0.87) | not forecastable (AR1 ≤ 0.12) |
 |---|---|
-| realized volatility, range, spread, tick count | direction, trendiness, VWAP crosses |
+| realized volatility, range, spread, tick count | direction, trendiness |
 
 So volatility level is the only legitimate thing to condition position sizing
 or window selection on. The EA sizes inversely to trailing realized volatility

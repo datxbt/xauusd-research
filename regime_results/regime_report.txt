@@ -15,7 +15,6 @@ trendiness           0.470       0.467       0.475
 trend_days_pct      33.591      36.078      36.000
 chop_days_pct       29.730      29.412      30.667
 up_days_pct         55.985      59.216      50.667
-vwap_crosses        15.533      14.961      15.320
 daily_ac1           -0.085      -0.028       0.004
 hurst                0.439       0.391       0.320
 avg_spread           0.056       0.037       0.091
@@ -24,19 +23,19 @@ best_day_pct         2.155       3.713       6.586
 worst_day_pct       -4.017      -6.130     -10.059
 
 === quarterly path ===
-                 ret  range_pct  rvol  trendiness  crosses  spread       ticks
-session_date                                                                  
-2024Q1         7.833      1.170 0.691       0.415   16.714   0.070 103,423.333
-2024Q2         3.097      1.586 0.963       0.503   14.738   0.067 156,524.723
-2024Q3        12.252      1.402 0.839       0.466   15.576   0.048 166,994.985
-2024Q4        -0.109      1.344 0.795       0.494   15.138   0.038 183,384.369
-2025Q1        16.993      1.269 0.766       0.489   14.905   0.037 221,400.397
-2025Q2         7.626      2.186 1.233       0.499   14.547   0.037 301,128.031
-2025Q3        15.925      1.291 0.773       0.471   15.561   0.037 194,788.818
-2025Q4        12.941      2.138 1.334       0.406   14.806   0.038 450,231.371
-2026Q1         8.709      3.456 2.080       0.475   16.667   0.085 530,789.143
-2026Q2       -11.734      2.406 1.423       0.468   14.656   0.100 323,210.422
-2026Q3         1.369      2.154 1.288       0.493   13.478   0.080 290,118.826
+                 ret  range_pct  rvol  trendiness  spread       ticks
+session_date                                                         
+2024Q1         7.833      1.170 0.691       0.415   0.070 103,423.333
+2024Q2         3.097      1.586 0.963       0.503   0.067 156,524.723
+2024Q3        12.252      1.402 0.839       0.466   0.048 166,994.985
+2024Q4        -0.109      1.344 0.795       0.494   0.038 183,384.369
+2025Q1        16.993      1.269 0.766       0.489   0.037 221,400.397
+2025Q2         7.626      2.186 1.233       0.499   0.037 301,128.031
+2025Q3        15.925      1.291 0.773       0.471   0.037 194,788.818
+2025Q4        12.941      2.138 1.334       0.406   0.038 450,231.371
+2026Q1         8.709      3.456 2.080       0.475   0.085 530,789.143
+2026Q2       -11.734      2.406 1.423       0.468   0.100 323,210.422
+2026Q3         1.369      2.154 1.288       0.493   0.080 290,118.826
 
 === PART 2: which characteristics persist (are forecastable at all)? ===
 monthly_ac1 = month-over-month autocorrelation.  skill_vs_mean_pct > 0 means
@@ -47,13 +46,11 @@ avg_spread              0.870        0.466          0.006            0.020      
 realized_vol_pct        0.698        0.355          0.257            0.301             14.882          True
 ticks                   0.669        0.534     78,312.370       94,653.475             17.264          True
 range_pct               0.635        0.324          0.477            0.514              7.287          True
-max_dev_pct             0.606        0.366          0.271            0.280              3.052          True
 ret_pct                 0.118        0.190          0.247            0.192            -28.860         False
 trendiness              0.067       -0.100          0.062            0.045            -37.755         False
-vwap_crosses           -0.031       -0.118          1.877            1.407            -33.429         False
 
-forecastable metrics: ['avg_spread', 'realized_vol_pct', 'ticks', 'range_pct', 'max_dev_pct']
-NOT forecastable: ['trendiness', 'vwap_crosses', 'ret_pct']
+forecastable metrics: ['avg_spread', 'realized_vol_pct', 'ticks', 'range_pct']
+NOT forecastable: ['trendiness', 'ret_pct']
 
 === PART 3: AR(1) projection, persistent metrics only ===
 proj_Nm = expected monthly mean N months after 2026-06; band = +/- 95% interval.
@@ -63,7 +60,6 @@ avg_spread             0.080     0.878          0.058       0.078       0.073   
 realized_vol_pct       1.288     0.690          1.154       1.247       1.198       1.168       0.803       0.845
 ticks            290,118.826     0.655    280,510.027 286,802.483 283,208.526 281,267.864 252,783.367 262,562.593
 range_pct              2.154     0.627          1.916       2.065       1.975       1.930       1.389       1.431
-max_dev_pct            1.204     0.598          1.087       1.157       1.112       1.092       0.781       0.799
 
 === is DIRECTION forecastable? ===
 daily return autocorr lag1 -0.0350  lag5 +0.0247

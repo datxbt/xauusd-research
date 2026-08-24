@@ -5,7 +5,7 @@ Regime-conditional optimisation of the 5-window ORB portfolio.
 What the regime analysis established
 ------------------------------------
   forecastable : realized volatility, range, spread, tick count  (AR1 0.60-0.87)
-  NOT forecastable : direction, trendiness, VWAP crosses         (AR1 <= 0.12)
+  NOT forecastable : direction, trendiness                       (AR1 <= 0.12)
 
 So the only legitimate thing to condition on is the VOLATILITY LEVEL, and it
 must be measured from elapsed sessions only.  Two changes are tested:
@@ -66,7 +66,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="regime-conditional ORB optimisation")
     ap.add_argument("--data-dir", default="Monthly_Tick_Data")
     ap.add_argument("--cache-dir", default=None)
-    ap.add_argument("--sessions", default="vwap_pullback_results/sessions.csv")
+    ap.add_argument("--sessions", default="market_context/sessions.csv")
     ap.add_argument("--subbar-seconds", type=int, default=5)
     ap.add_argument("--bar-minutes", type=int, default=5)
     ap.add_argument("--chunksize", type=int, default=2_000_000)

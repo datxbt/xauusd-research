@@ -11,7 +11,7 @@ Therefore: define a range over the first R minutes after a session open, and
 trade the first break of that range in the direction of the break.
 
 This is a mechanism-driven prior from market microstructure, NOT a pattern
-mined from this dataset.  It is unrelated to the VWAP work.
+mined from this dataset.
 
 RULES (fixed in advance)
 ------------------------
@@ -26,7 +26,7 @@ RULES (fixed in advance)
   * Flat at session end regardless.
   * Costs: the real bid/ask spread in the tick data + commission.
 
-PASS / FAIL BAR (fixed in advance, identical to the VWAP study)
+PASS / FAIL BAR (fixed in advance)
 ---------------------------------------------------------------
   TRAIN 2024-01..2025-06, HOLDOUT 2025-07..2026-06.
   A config is a candidate only if, on TRAIN, it has >= 150 trades AND its 95%
@@ -52,9 +52,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from backtest_vwap_pullback import (CONTRACT_SIZE, EPS, NS_PER_SEC,
-                                    apply_money_management, compute_metrics,
-                                    discover_files, load_subbars, split_sessions)
+from tickdata import (CONTRACT_SIZE, EPS, NS_PER_SEC, apply_money_management,
+                      compute_metrics, discover_files, load_subbars, split_sessions)
 
 TRAIN = ("2024-01", "2025-06")
 HOLDOUT = ("2025-07", "2026-06")

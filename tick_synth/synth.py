@@ -28,7 +28,7 @@ real spread process, the real fat tails, the weekend closure.
 
   * << the holding horizon (5-60 minutes): a NULL world.  Multi-hour
     directional structure is destroyed by construction while costs, tick
-    spacing and volatility stay real.  A session-breakout or VWAP-pullback
+    spacing and volatility stay real.  A session-breakout
     edge should largely DIE here.  If it does not, the edge is not coming
     from the mechanism you think it is -- suspect the cost model, the fill
     logic, or leakage.

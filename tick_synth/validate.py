@@ -12,7 +12,7 @@ actually depends on -- not on how pretty the chart looks:
               (should be clearly positive -- volatility clustering)
   daily       daily range and close-to-close move
 
-The sub-bar builder from backtest_vwap_pullback is reused, so the numbers are
+The sub-bar builder from tickdata is reused, so the numbers are
 computed off exactly the same representation the strategies see, and the npz
 cache is shared with the backtests.
 
@@ -34,7 +34,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
 
 from common import log                                    # noqa: E402
-from backtest_vwap_pullback import load_subbars           # noqa: E402
+from tickdata import load_subbars           # noqa: E402
 from common import discover_months                        # noqa: E402
 
 SUB_SEC = 5

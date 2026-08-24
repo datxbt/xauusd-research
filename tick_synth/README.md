@@ -15,16 +15,15 @@ python backtest_orb.py --data-dir tick_synth/output/rep00 --outdir orb_results/r
 
 ## Why
 
-One history is one draw. Every number in `orb_results/` and
-`vwap_pullback_results/` is a single realisation, and the pre-registered
-CI in those scripts resamples *sessions* — it cannot resample the tape
-itself. This folder gives you two things that history alone cannot:
+One history is one draw. Every number in `orb_results/` is a single
+realisation, and the pre-registered CI in those scripts resamples
+*sessions* — it cannot resample the tape itself. This folder gives you two things that history alone cannot:
 
 1. **Alternative histories** — many tapes with the same microstructure, so an
    edge can be scored against the spread of outcomes it *could* have had.
 2. **A null tape** — a market with real costs, real tick spacing and real
    volatility, but with the multi-hour directional structure deliberately
-   removed. A breakout or pullback edge should largely die there. If it
+   removed. A breakout edge should largely die there. If it
    doesn't, the P&L is coming from something other than the stated mechanism.
 
 ## Files
@@ -171,12 +170,11 @@ any run can be reproduced exactly rather than kept.
 * Price levels are re-anchored to the real month's opening price at the start
   of every month (`--reanchor none` to let the level drift freely). Only the
   level is touched; log returns are untouched.
-* The `TRAIN` / `HOLDOUT` month ranges are hardcoded inside `backtest_orb.py`
-  and `backtest_vwap_pullback.py`, so generate the same calendar you want to
-  test — a synthetic `2024-01:2026-06` splits exactly the way the real one does.
+* The `TRAIN` / `HOLDOUT` month ranges are hardcoded inside `backtest_orb.py`,
+  so generate the same calendar you want to test — a synthetic `2024-01:2026-06` splits exactly the way the real one does.
 * **Give every run its own `--cache-dir`.** `load_subbars` keys the sub-bar
   cache on the file *stem* only, and a synthetic `2025-04` has the same stem
-  as the real one — so pointing `backtest_orb.py`, `backtest_vwap_pullback.py`
-  or `validate.py` at a synthetic directory while reusing the real run's cache
-  silently back-tests the real data. Use `--cache-dir cache/rep00`, or leave
+  as the real one — so pointing `backtest_orb.py` or `validate.py` at a
+  synthetic directory while reusing the real run's cache silently
+  back-tests the real data. Use `--cache-dir cache/rep00`, or leave
   it off entirely.

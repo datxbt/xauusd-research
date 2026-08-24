@@ -38,21 +38,13 @@ rộng biên độ. Cơ sở của giả thuyết nằm ở vi cấu trúc thị
 tụ qua đêm khi thanh khoản mỏng, rồi được định giá lại thành một đợt bùng nổ
 lệnh khi phiên chính mở cửa.
 
-**Hồi về VWAP** ([backtest_vwap_pullback.py](backtest_vwap_pullback.py)) — VWAP
-phiên được đặt lại mỗi ngày; khi một nến đóng cửa 5 phút giãn khỏi VWAP quá một
-ngưỡng cho trước thì vào lệnh ngược lại, kỳ vọng giá kéo về VWAP. Vào lệnh tại
-giá mở của nến kế tiếp, mục tiêu là chính VWAP (vẫn đang di chuyển), cắt lỗ đặt
-xa hơn điểm vào.
-
 ## Cấu trúc dự án
 
 | đường dẫn | nội dung |
 |---|---|
 | [backtest_orb.py](backtest_orb.py) | kiểm định ORB đã đăng ký trước, lưới 18 cấu hình |
-| [backtest_vwap_pullback.py](backtest_vwap_pullback.py) | backtest hồi VWAP + bộ nạp tick dùng chung |
-| [search_strategy.py](search_strategy.py) | tìm biến thể VWAP có thể triển khai, theo hướng giả thuyết |
+| [tickdata.py](tickdata.py) | engine dùng chung: tick → sub-bar → phiên, tính khối lượng lệnh và chỉ số |
 | [session_context.py](session_context.py) | bảng đặc tính từng phiên (xu hướng/đi ngang, biến động, spread) để ghép vào lệnh |
-| [analyze_vwap_results.py](analyze_vwap_results.py) | hoàn cảnh nào thực sự sinh lời — kỳ vọng theo giờ, thứ, chế độ thị trường |
 | [optimize_time_windows.py](optimize_time_windows.py) | quét 216 khung giờ ORB (24 giờ × 3 biên độ × 3 mục tiêu), chấm trên cả hai giai đoạn |
 | [regime_analysis.py](regime_analysis.py) | mỗi năm trông ra sao, đặc tính nào có tính bền, và dự báo cho những đặc tính đó |
 | [optimize_for_regime.py](optimize_for_regime.py) | điều kiện hóa danh mục ORB theo biến động — đầu vào duy nhất dự báo được |
@@ -60,7 +52,7 @@ xa hơn điểm vào.
 | [XAUUSD_SessionBreakout.mq5](XAUUSD_SessionBreakout.mq5) | EA cho MT5: danh mục 8 khung giờ, chạy thật |
 | [tick_synth/](tick_synth/) | bộ sinh tick tổng hợp — xem [README riêng](tick_synth/README.md) |
 
-Kết quả nằm trong `orb_results/`, `vwap_pullback_results/`, `regime_results/`
+Kết quả nằm trong `orb_results/`, `regime_results/`, `market_context/`
 và `spread_stats/`, được commit vào repo như hồ sơ nghiên cứu.
 
 ## Kết luận từ regime_analysis
@@ -69,7 +61,7 @@ Kết quả này chi phối mọi thứ phía sau, nên cần đặt ngay từ �
 
 | dự báo được (AR1 0.60–0.87) | không dự báo được (AR1 ≤ 0.12) |
 |---|---|
-| biến động thực tế, biên độ, spread, số tick | hướng đi, độ xu hướng, số lần cắt VWAP |
+| biến động thực tế, biên độ, spread, số tick | hướng đi, độ xu hướng |
 
 Vì vậy mức biến động là thứ duy nhất hợp lệ để điều kiện hóa khối lượng vào
 lệnh hay việc chọn khung giờ. EA tính khối lượng nghịch đảo với biến động thực
