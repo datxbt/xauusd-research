@@ -2,7 +2,7 @@
 # Tick data -- tens of GB of vendor data, never in git
 # ---------------------------------------------------------------------------
 Monthly_Tick_Data/
-Yearly Ticks/
+Yearly_Tick_Data/
 ZippedTickData/
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,22 @@
+{
+  "current": "ORIGINAL",
+  "since": "2026-08-24",
+  "last_check": "2026-08-24 14:37",
+  "history": [
+    {
+      "date": "2026-07-31",
+      "trailing": 1.2402,
+      "action": "stay ORIGINAL"
+    },
+    {
+      "date": "2026-08-24",
+      "trailing": 1.2626,
+      "action": "stay ORIGINAL"
+    },
+    {
+      "date": "2026-08-24",
+      "trailing": 1.2628,
+      "action": "stay TUNED_2026"
+    }
+  ]
+}
