@@ -160,6 +160,108 @@ that stops trades riding a weekend, the Friday cutoff, `InpMaxSpreadUSD` in
 USD/oz rather than points, per-side stops-level checks, and the take profit
 re-anchored to the actual fill.
 
+### State across re-initialisation
+
+`OnInit` runs far more often than once. A restart, a reconnect, a recompile, an
+edit to any input and **every change of chart timeframe** all land there. Two
+things follow, and both were wrong until they were fixed:
+
+- The EA now **adopts** whatever is already on the server instead of re-arming
+  from scratch. It rebuilds the window from the resting orders — high and low
+  from the pending prices, expiry recomputed, `armedDay`/`doneDay` inferred —
+  then cancels prior-day leftovers and prunes duplicate stops. Previously each
+  re-init placed a second bracket on top of the live one, so flipping
+  M1 → M5 → M15 left three copies of the same trade and multiplied size until
+  the daily-loss limit tripped.
+- The day's opening equity is **persisted** in a terminal global variable keyed
+  by `InpMagicBase`, rather than re-sampled. Re-sampling walked the daily-loss
+  baseline down with every restart, so the halt measured from the restart rather
+  than from the day — which is no protection at all, silently.
+
+`BuildRange`, `LoadPreset` and `ProcessWindow` are untouched, so the entry
+geometry is identical to the tested build and every table above still describes
+it. Leaving the terminal on one timeframe is no longer necessary; M5 or M15 is
+fine, and the EA is tick-driven either way.
+
+## The news-safe variant
+
+`XAUUSD_SessionBreakout_NewsSafe.mq5`. A *funded* FTMO Standard account may not
+open or close a position on a USD-targeted instrument within ±2 minutes of six
+named US releases, and XAUUSD is targeted. A resting buy stop counts: if price
+tags it inside the window that is an opening trade, whenever it was placed. The
+Swing account is exempt but costs about 10% more and caps at $25k, which is what
+makes an EA-side solution worth building.
+
+Generated from the base EA by anchored substitution, so the geometry is provably
+identical and the backtests carry over. Magic base is 8830000, so both can run
+side by side. Three sources, because any one can fail alone:
+
+| source | input | what it is |
+|---|---|---|
+| calendar | `InpUseCalendar` | MQL5 `CalendarValueHistory`, matched on event name and currency |
+| schedule | `InpUseSchedule` | fixed `InpNewsScheduleET` = `08:30,14:00`, fallback when the feed is empty |
+| file | `InpNewsCsvFile` | offline timestamps — `us_macro_releases.csv` |
+
+Ahead of a window it pulls its pendings and applies `InpNewsPosMode`
+(`FLATTEN` / `DETACH_STOPS` / `HOLD`) to any open position, then re-arms
+afterwards if the window has not expired. ET→UTC follows **US** DST, not the
+broker's EET.
+
+Under `GEO_2026_NO_H13` the 08:30 releases land in the 11:00–15:00 UTC gap
+between armed windows and cannot reach an entry; only 14:00 × h14 is exposed,
+about 16 days a year.
+
+## Sizing against prop-firm rules
+
+Four simulators, all replaying rule sets over the same per-lot daily
+close-and-trough series from every possible start date, so the rates are
+frequencies over start dates rather than one path:
+
+| script | question |
+|---|---|
+| `ftmo_sim.py` | FTMO against E8 — a 10% *static* floor against a 4% *trailing* one |
+| `news_sim.py` | what the news filter costs, per blackout scenario |
+| `payout_sim.py` | cash actually withdrawn, including E8 Signature's payout caps |
+| `prop_sizing.py` | lot ladders under each rule set |
+
+The floor geometry dominates everything else. At the same size FTMO's static
+floor contains this strategy's drawdown and E8 Signature's trailing floor does
+not — 0.0% funded breach against 47.4%.
+
+On a $100k FTMO 2-Step, ORIGINAL, news filter on, +$0.15/oz, 80% split, 4.5%
+daily halt (`results/lot_ladder_full.csv`, 40 sizes, 7 shown):
+
+| lots | maxDD | pass | median days | breach | E[cash] |
+|---|---|---|---|---|---|
+| 0.10 | 6.32% | 80.0% | 142 | 0.0% | $11,647 |
+| 0.11 | 6.95% | 84.2% | 130 | 0.0% | $13,672 |
+| **0.12** | **7.58%** | **86.3%** | **122** | **0.0%** | **$15,309** |
+| 0.13 | 8.21% | 87.2% | 108 | 29.1% | $14,106 |
+| 0.14 | 8.84% | 86.1% | 98 | 34.9% | $14,093 |
+| 0.16 | 13.34% | 83.4% | 89 | 43.4% | $15,255 |
+| 0.17 | 13.61% | 84.0% | 84 | 43.5% | $16,330 |
+
+**0.13–0.16 are strictly dominated by 0.12** — less expected cash *and* 29–43%
+breach. Expected cash does not beat 0.12 again until 0.17. So:
+
+```
+InpBaseLots        = 0.12
+InpMaxDailyLossPct = 4.5
+InpUseVolTargeting = false
+```
+
+The halt never fires at 0.12 (worst observed day 4.11%), so it costs nothing and
+exists purely as tail insurance. It does not unlock more size: below ~0.145 lots
+it never triggers, and above 0.16 it *deepens* max drawdown — 9.47% → 13.34%
+across one 0.01 step — by closing days that would partly have recovered.
+
+Two cautions. The news filter is strongly non-linear in size: at 0.02 lots/$10k
+it is nearly free (−0.30pp pass, breach unchanged), at 0.03 it pushes funded
+breach from 58.0% to 71.8%. And every number here is a frequency over start
+dates *inside 2024–2026* — the window the parent README's §5.3 shows does not
+replicate. They say how much size this return series tolerates, not whether the
+series recurs.
+
 **One expectation to set.** The replicate medians above were measured at a
 fixed 0.02 lots. The EA ships with volatility targeting on and the reference
 left at 0.816%, so at 2026-level volatility it trades roughly half size and
@@ -189,3 +291,12 @@ based on real ticks"** and reconcile against `results/`. On Exness set
 | `results/candidates_replicates.csv` | per-replicate scores |
 | `results/decompose_replicates.csv` | geometry-variant scores |
 | `results/walkforward_2026.csv` | Jan–Apr → May–Jul test |
+| `ftmo_sim.py` | FTMO against E8 on one daily series |
+| `news_sim.py` | cost of the release filter, per blackout scenario |
+| `payout_sim.py` | cash withdrawn from a funded account, incl. payout caps |
+| `prop_sizing.py` | lot ladders under each rule set |
+| `us_macro_releases.csv` | 109 observed release dates, `YYYY-MM-DD,slot` |
+| `results/lot_ladder_full.csv` | 0.01→0.40 lots in 0.01 steps, $100k FTMO 2-Step |
+| `results/news_sim.csv` | pass/breach by blackout scenario |
+| `results/ftmo_sim.csv` | FTMO 1-Step against 2-Step, three sizes |
+| `results/payout_sim.csv` | per-product withdrawal simulation |

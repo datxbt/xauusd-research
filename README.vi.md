@@ -27,6 +27,12 @@ null tổng hợp, nhưng không tái lập được trên giai đoạn 2020–2
 hơn chính mẫu đã dùng để xây dựng nó. Mục 5 trình bày cả hai kết quả; Mục 8 nêu
 các hạn chế phát sinh từ đó.
 
+Một câu hỏi phụ được xử lý riêng ở §4.3 và §5.5: với giả định hiệu ứng là có
+thật, khối lượng vào lệnh nào sống sót được trước các giới hạn thua lỗ mà các
+đơn vị cấp vốn áp đặt, và các quy định hạn chế giao dịch quanh tin tức của họ
+tốn kém bao nhiêu. Phân tích đó độc lập với câu hỏi lợi thế có tồn tại hay
+không, và nó kế thừa toàn bộ hạn chế của chính mẫu dữ liệu dùng để đo nó.
+
 ---
 
 ## 1. Kiến trúc hệ thống
@@ -75,6 +81,14 @@ flowchart TB
     GATE -->|"không vượt"| NEG
     SIZE --> EA
     EA --> SW["regime_switch.py<br/>giám sát preset hằng tuần"]
+
+    NEWS["XAUUSD_SessionBreakout_NewsSafe.mq5<br/>cùng hình học · chặn quanh giờ tin"]
+    EA -->|"dẫn xuất bằng thay thế có neo,<br/>cho tài khoản Standard đã cấp vốn"| NEWS
+
+    PROP["ftmo_sim · news_sim · payout_sim · prop_sizing<br/>mỗi bộ quy tắc chạy lại từ mọi ngày bắt đầu"]
+    EA --> PROP
+    NEWS --> PROP
+    PROP --> CLIFF["vách khối lượng<br/>vi phạm 0,0% tại 0,12 lot,<br/>29,1% tại 0,13"]
 ```
 
 Đặc điểm có ý nghĩa về mặt kiến trúc là một engine duy nhất xử lý cả chuỗi tick
@@ -213,6 +227,33 @@ là UTC quanh năm, và không được lẫn lộn hai điều này.
 
 Xử lý định lượng cho thời điểm đóng vị thế được trình bày ở §5.4.
 
+### 4.3 Hạn chế giao dịch quanh giờ công bố tin
+
+Tài khoản *đã được cấp vốn* tại FTMO chịu một hạn chế mà cả hai vòng thử thách
+đều không có: không được mở hay đóng vị thế trên một công cụ chịu ảnh hưởng của
+USD trong phạm vi hai phút trước và sau sáu bản tin kinh tế Hoa Kỳ được nêu đích
+danh. XAUUSD nằm trong nhóm đó thông qua USD. Hạn chế này ràng buộc cả các lệnh
+chờ đang nằm sẵn, bởi một lệnh buy stop bị chạm trong cửa sổ đó vẫn được tính là
+một lệnh mở, bất kể nó được đặt từ khi nào; và một lệnh cắt lỗ kích hoạt trong
+cửa sổ đó được tính là một lệnh đóng. Chính đặc điểm này khiến ràng buộc trở nên
+không tầm thường đối với một chiến lược đặt lệnh trước nhiều giờ rồi để yên.
+
+`XAUUSD_SessionBreakout_NewsSafe.mq5` được dẫn xuất từ EA gốc bằng phép thay thế
+có neo, giữ nguyên từng byte phần hình học vào lệnh ở §4.1, nên các kết quả ở §5
+được kế thừa mà không cần ước lượng lại. Trước mỗi cửa sổ tin, EA rút các lệnh
+chờ của mình và hoặc đóng vị thế đang mở, hoặc tháo cắt lỗ của nó, tùy
+`InpNewsPosMode`; sau đó dựng lại biên độ nếu cửa sổ giao dịch vẫn còn hiệu lực.
+Thời điểm công bố được lấy từ lịch kinh tế của MetaTrader, từ một lịch cố định
+08:30/14:00 giờ New York khi nguồn đó rỗng, và từ một bảng mốc thời gian ngoại
+tuyến. Việc quy đổi giờ New York sang UTC bám theo giờ mùa hè Hoa Kỳ chứ không
+theo đồng hồ của sàn — hai mốc này lệch nhau ba tuần vào mùa xuân và một tuần
+vào mùa thu.
+
+Với danh mục mặc định `GEO_2026_NO_H13`, các bản tin 08:30 rơi vào khoảng trống
+11:00–15:00 UTC giữa các cửa sổ đã kích hoạt nên không thể chạm tới một lệnh vào
+nào; chỉ các bản tin 14:00 mới cắt qua một cửa sổ, vào khoảng mười sáu ngày mỗi
+năm. Chi phí đo được trình bày ở §5.5.
+
 ---
 
 ## 5. Kết quả
@@ -285,6 +326,70 @@ So với quy tắc cố định theo UTC, quy tắc neo theo New York đem lại
 với ORIGINAL thì hành vi cũ nhỉnh hơn đôi chút, và kết quả không nên được khái
 quát hóa.
 
+### 5.5 Ràng buộc vốn và việc xác định khối lượng vào lệnh
+
+Việc triển khai trên vốn của bên thứ ba áp đặt những giới hạn thua lỗ vốn không
+phải là thuộc tính của chiến lược, và điều thực sự ràng buộc là *hình dạng* của
+chúng chứ không phải độ lớn. Bốn bộ mô phỏng chạy lại từng bộ quy tắc trên cùng
+một chuỗi giá đóng cửa và đáy trong ngày tính trên mỗi lot, xuất phát từ mọi
+ngày bắt đầu khả dĩ thay vì đi theo một lộ trình duy nhất; vì vậy các tỷ lệ dưới
+đây là tần suất trên tập các ngày bắt đầu, không phải ước lượng điểm từ một lần
+chạy.
+
+Các mức sàn khác nhau về bản chất. Mức lỗ tối đa của FTMO là 10%, tính *tĩnh* từ
+số dư ban đầu; của E8 Signature là 4%, *trượt* theo đỉnh vốn cuối ngày. Ở cùng
+một khối lượng, mức thứ nhất chứa được mức sụt giảm vốn của chiến lược này còn
+mức thứ hai thì không — tỷ lệ vi phạm đo được là 0,0% so với 47,4%. Một mức sàn
+trượt hẹp hơn chính mức sụt giảm vốn của chiến lược không phải là phiên bản nhỏ
+hơn của một mức sàn tĩnh, mà là một ràng buộc khác hẳn.
+
+Khối lượng trên tài khoản FTMO 2-Step 100.000 USD, với danh mục ORIGINAL, bộ lọc
+tin ở §4.3, phụ phí thực thi 0,15 USD/oz so với mức nền Exness raw, tỷ lệ chia
+lợi nhuận 80% và ngưỡng dừng lỗ trong ngày 4,5%
+([lot_ladder_full.csv](strategy_2026/results/lot_ladder_full.csv), bốn mươi mức,
+trích bảy):
+
+| lot | sụt giảm tối đa | tỷ lệ đạt | số ngày trung vị | vi phạm | tiền mặt kỳ vọng |
+|---|---|---|---|---|---|
+| 0,10 | 6,32% | 80,0% | 142 | 0,0% | 11.647 USD |
+| 0,11 | 6,95% | 84,2% | 130 | 0,0% | 13.672 USD |
+| **0,12** | **7,58%** | **86,3%** | **122** | **0,0%** | **15.309 USD** |
+| 0,13 | 8,21% | 87,2% | 108 | 29,1% | 14.106 USD |
+| 0,14 | 8,84% | 86,1% | 98 | 34,9% | 14.093 USD |
+| 0,16 | 13,34% | 83,4% | 89 | 43,4% | 15.255 USD |
+| 0,17 | 13,61% | 84,0% | 84 | 43,5% | 16.330 USD |
+
+Bước chuyển giữa 0,12 và 0,13 là gián đoạn, và cả khoảng 0,13–0,16 đều *bị
+trội*: mọi mức trong khoảng đó đều cho tiền mặt kỳ vọng thấp hơn mức 0,12 trong
+khi mang theo xác suất vi phạm từ 29% đến 43%. Tiền mặt kỳ vọng chỉ vượt được
+con số của mức 0,12 khi lên tới 0,17, và khi đó xác suất vi phạm đã đạt 43,5%.
+Do vậy mức lớn nhất không quan sát thấy vi phạm nào là 0,12 lot, tương đương
+0,0012 lot trên mỗi 1.000 USD vốn danh nghĩa.
+
+Một ngưỡng dừng lỗ cứng trong ngày không nới lỏng được ràng buộc này. Dưới
+khoảng 0,145 lot nó không bao giờ kích hoạt; trên 0,16 nó *làm sâu thêm* mức sụt
+giảm tối đa — từ 9,47% lên 13,34% chỉ qua một bước 0,01 — bởi những ngày mà nó
+đóng lại thì một phần vốn dĩ đã hồi phục được. Nó được giữ lại như một lớp bảo
+hiểm trước một ngày tệ hơn mọi ngày từng quan sát, chứ không phải như một giấy
+phép để tăng khối lượng.
+
+Bộ lọc tin ở §4.3 là một khoản chi phí chứ không phải một cải tiến, và độ lớn
+của nó phi tuyến mạnh theo khối lượng. Ở mức 0,02 lot trên mỗi 10.000 USD, nó
+loại 18 trong số 5.192 lệnh và làm tỷ lệ đạt thay đổi −0,30 điểm với tỷ lệ vi
+phạm không đổi; ở mức 0,03 lot, cũng bộ lọc đó đẩy tỷ lệ vi phạm từ 58,0% lên
+71,8%. Việc loại đi một số ít lệnh làm thay đổi *lộ trình* thực tế, và hành vi
+gần một mức sàn thì không liên tục theo số lệnh bị loại. Không được phép ngoại
+suy tuyến tính chi phí này; một ước lượng trước đó làm theo cách ấy đã đánh giá
+thấp nó khoảng ba lần.
+
+Một kết quả được báo cáo nhưng cố ý không áp dụng. Chặn *mọi* bản tin 08:30, chứ
+không chỉ sáu bản tin được nêu đích danh, nâng tỷ lệ đạt của ORIGINAL lên 87,7%
+và hạ tỷ lệ vi phạm xuống 0,0%
+([news_sim.csv](strategy_2026/results/news_sim.csv), kịch bản `am_all`). Đây là
+một bộ lọc được phát hiện trên chính mẫu dữ liệu dùng để đo nó, không có cơ chế
+nào được đề xuất để giải thích, nên nó được ghi lại như một quan sát chứ không
+được nhận làm quy tắc.
+
 ---
 
 ## 6. Cấu trúc repository
@@ -299,6 +404,11 @@ quát hóa.
 | [optimize_for_regime.py](optimize_for_regime.py) | điều kiện hóa danh mục ORB theo biến động, đầu vào duy nhất dự báo được |
 | [run_synth_backtest.py](run_synth_backtest.py) | đánh giá danh mục ORB 8 khung giờ trên các bản sao tổng hợp |
 | [XAUUSD_SessionBreakout.mq5](XAUUSD_SessionBreakout.mq5) | EA cho MT5: danh mục 8 khung giờ nguyên bản |
+| [strategy_2026/ftmo_sim.py](strategy_2026/ftmo_sim.py) | FTMO so với E8 trên cùng một chuỗi ngày — sàn tĩnh so với sàn trượt |
+| [strategy_2026/news_sim.py](strategy_2026/news_sim.py) | chi phí của bộ lọc tin ở §4.3, theo từng kịch bản chặn |
+| [strategy_2026/payout_sim.py](strategy_2026/payout_sim.py) | tiền thực rút được từ tài khoản đã cấp vốn, kể cả trần rút từng đợt |
+| [strategy_2026/prop_sizing.py](strategy_2026/prop_sizing.py) | thang khối lượng theo từng bộ quy tắc |
+| [strategy_2026/us_macro_releases.csv](strategy_2026/us_macro_releases.csv) | 109 ngày công bố tin thực tế, để việc chặn rơi đúng vào ngày nó đã rơi |
 | [strategy_2026/](strategy_2026/) | lớp thực thi — EA 2026, đóng lệnh neo theo New York, bộ chuyển preset; xem [README riêng](strategy_2026/README.md) |
 | [tick_synth/](tick_synth/) | bộ sinh tick tổng hợp; xem [README riêng](tick_synth/README.md) |
 
@@ -317,6 +427,15 @@ số, cho phép dựng lại giống hệt từng byte một chuỗi tick đã b
 EA cần MetaTrader 5. `InpGMTOffsetHours` phải khớp với đồng hồ máy chủ của sàn;
 một giá trị sai sẽ khiến chiến lược giao dịch ở những khung giờ hoàn toàn khác
 mà không phát ra bất kỳ cảnh báo nào.
+
+**Trạng thái của EA.** `OnInit` không phải là sự kiện chỉ xảy ra một lần khi
+triển khai: khởi động lại, kết nối lại, biên dịch lại và *mỗi lần đổi khung thời
+gian của biểu đồ* đều đi vào đó. Vì vậy EA dựng lại trạng thái của ngày từ chính
+các lệnh đang nằm trên máy chủ thay vì kích hoạt lại từ đầu, và lưu vốn đầu ngày
+vào một biến toàn cục của terminal, đặt khóa theo magic number. Thiếu điều thứ
+nhất, một lần đổi khung thời gian sẽ nhân đôi biên độ đang chạy; thiếu điều thứ
+hai, mốc tính lỗ trong ngày bị lấy mẫu lại sau mỗi lần khởi động lại và giới hạn
+sẽ âm thầm đo từ lúc khởi động lại chứ không phải từ đầu ngày.
 
 ---
 
@@ -343,7 +462,14 @@ mà không phát ra bất kỳ cảnh báo nào.
 5. **Chuỗi tick tổng hợp chỉ đo độ phân tán và độ bền.** Chúng không phải công cụ
    để phát hiện lợi thế, và không tham số nào được tối ưu trên chúng.
 
-6. Mức tin cậy chủ quan rằng tồn tại một lợi thế bền vững, giao dịch được là
+6. **Phân tích khối lượng ở §5.5 là có điều kiện, không độc lập.** Tỷ lệ đạt và
+   tỷ lệ vi phạm là tần suất trên tập ngày bắt đầu trong giai đoạn 2024–2026 —
+   đúng cửa sổ mà §5.3 cho thấy không tái lập được. Chúng trả lời câu hỏi *chuỗi
+   lợi nhuận này chịu được khối lượng lớn đến đâu*, chứ không phải *chuỗi đó có
+   lặp lại hay không*. Nếu hiệu ứng hóa ra chỉ là sản phẩm của cửa sổ đã khớp,
+   thì không mức lot nào trong bảng đó là có căn cứ.
+
+7. Mức tin cậy chủ quan rằng tồn tại một lợi thế bền vững, giao dịch được là
    khoảng 30%, với kỳ vọng hiệu năng thực tế gần hệ số lợi nhuận 1,05 hơn là mức
    1,20 đo được trong mẫu. Chiến lược **chưa được triển khai thật**; việc kiểm
    định tiến tới đến nay chỉ thực hiện trên tài khoản demo.

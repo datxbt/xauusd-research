@@ -27,6 +27,12 @@ fails to replicate on 2020–2023, a larger sample than that on which it was
 constructed. Section 5 presents both results; Section 8 states the resulting
 limitations.
 
+A subsidiary question is treated separately in §4.3 and §5.5: conditional on the
+effect being real, what position size survives the loss limits imposed by
+third-party capital providers, and what their news-release restrictions cost.
+That analysis is orthogonal to the question of whether the edge exists, and it
+inherits every limitation of the sample on which it is measured.
+
 ---
 
 ## 1. System architecture
@@ -76,6 +82,14 @@ flowchart TB
     GATE -->|"does not"| NEG
     SIZE --> EA
     EA --> SW["regime_switch.py<br/>weekly preset monitor"]
+
+    NEWS["XAUUSD_SessionBreakout_NewsSafe.mq5<br/>same geometry · release blackout"]
+    EA -->|"derived by anchored substitution,<br/>for funded Standard accounts"| NEWS
+
+    PROP["ftmo_sim · news_sim · payout_sim · prop_sizing<br/>each rule set replayed from every start date"]
+    EA --> PROP
+    NEWS --> PROP
+    PROP --> CLIFF["sizing cliff<br/>breach 0.0% at 0.12 lots,<br/>29.1% at 0.13"]
 ```
 
 The architecturally significant property is that a single engine processes both
@@ -216,6 +230,33 @@ two should not be conflated.
 
 Quantitative treatment of the closure time is given in §5.4.
 
+### 4.3 News-release restriction
+
+A *funded* account at FTMO carries a restriction absent from both challenge
+stages: no position on a USD-targeted instrument may be opened or closed within
+two minutes either side of six named United States releases. XAUUSD is targeted
+through USD. The restriction binds on resting orders, since a buy stop tagged
+inside the window constitutes an opening trade irrespective of when it was
+placed, and a stop loss firing inside it constitutes a closing trade. That
+property is what makes the constraint non-trivial for a strategy whose orders
+are placed hours in advance and then left alone.
+
+`XAUUSD_SessionBreakout_NewsSafe.mq5` is derived from the base advisor by
+anchored substitution, leaving the entry geometry of §4.1 byte-identical, so the
+results of §5 carry over without re-estimation. Ahead of each window the advisor
+withdraws its pending orders and either flattens or detaches the stops of an
+open position, restoring the bracket afterwards if the window has not expired.
+Release times are drawn from the MetaTrader economic calendar, from a fixed
+08:30/14:00 Eastern schedule where that feed is empty, and from an offline table
+of observed timestamps. Eastern-to-UTC conversion follows United States daylight
+saving rather than the broker's clock, the two diverging for three weeks each
+spring and one each autumn.
+
+Under the default `GEO_2026_NO_H13` portfolio the 08:30 releases fall inside the
+11:00–15:00 UTC gap between armed windows and cannot reach an entry; only the
+14:00 releases intersect a window, on approximately sixteen days per year. The
+measured cost is reported in §5.5.
+
 ---
 
 ## 5. Results
@@ -290,6 +331,68 @@ Relative to a fixed-UTC rule, the anchored rule is worth +$192 (ORIGINAL) and
 improvement is unambiguous for the TUNED default; for ORIGINAL the prior
 behaviour was marginally superior, and the result should not be generalised.
 
+### 5.5 Capitalisation constraints and position sizing
+
+Deployment on third-party capital imposes loss limits that are not properties of
+the strategy, and what binds is their *geometry* rather than their magnitude.
+Four simulators replay each rule set over the same per-lot daily
+close-and-trough series, from every admissible start date rather than along a
+single path, so the rates reported below are frequencies over start dates and
+not point estimates from one run.
+
+The floors differ structurally. FTMO's maximum loss is 10%, measured statically
+from the initial balance; E8 Signature's is 4%, trailing the end-of-day equity
+high. At identical size the first contains this strategy's drawdown and the
+second does not — measured funded breach 0.0% against 47.4%. A trailing floor
+narrower than the strategy's own drawdown is not a smaller version of a static
+one but a different constraint.
+
+Sizing on a $100,000 FTMO two-step account, under ORIGINAL with the news filter
+of §4.3, an execution penalty of $0.15/oz over the Exness raw baseline, an 80%
+profit split and a 4.5% daily halt
+([lot_ladder_full.csv](strategy_2026/results/lot_ladder_full.csv), forty sizes,
+of which seven are shown):
+
+| lots | max drawdown | pass | median days | breach | expected cash |
+|---|---|---|---|---|---|
+| 0.10 | 6.32% | 80.0% | 142 | 0.0% | $11,647 |
+| 0.11 | 6.95% | 84.2% | 130 | 0.0% | $13,672 |
+| **0.12** | **7.58%** | **86.3%** | **122** | **0.0%** | **$15,309** |
+| 0.13 | 8.21% | 87.2% | 108 | 29.1% | $14,106 |
+| 0.14 | 8.84% | 86.1% | 98 | 34.9% | $14,093 |
+| 0.16 | 13.34% | 83.4% | 89 | 43.4% | $15,255 |
+| 0.17 | 13.61% | 84.0% | 84 | 43.5% | $16,330 |
+
+The transition between 0.12 and 0.13 is discontinuous, and the interval
+0.13–0.16 is *dominated*: every size within it returns less expected cash than
+0.12 while carrying between 29% and 43% breach probability. Expected cash does
+not exceed the 0.12 figure again until 0.17, by which point breach probability
+has reached 43.5%. The largest size at which no breach was observed is therefore
+0.12 lots, equivalently 0.0012 lots per $1,000 of nominal account.
+
+A hard daily-loss halt does not relax the constraint. Below approximately 0.145
+lots it never triggers; above 0.16 it *deepens* maximum drawdown — 9.47% to
+13.34% across a single 0.01 increment — because the days it closes would in part
+have recovered. It is retained as insurance against a day worse than any
+observed, not as a licence for size.
+
+The news filter of §4.3 is a cost rather than a refinement, and its magnitude is
+strongly non-linear in size. At 0.02 lots per $10,000 it removes 18 of 5,192
+trades and moves the pass rate by −0.30 points with funded breach unchanged; at
+0.03 lots the same filter raises funded breach from 58.0% to 71.8%. Removing a
+small number of trades alters the realised *path*, and behaviour near a floor is
+not continuous in the number of trades removed. No linear extrapolation of this
+cost is admissible; an earlier estimate made on that basis understated it by a
+factor of roughly three.
+
+One result is reported and deliberately not adopted. Blocking every 08:30
+release, rather than the six named ones only, raises the ORIGINAL pass rate to
+87.7% and reduces funded breach to 0.0%
+([news_sim.csv](strategy_2026/results/news_sim.csv), scenario `am_all`). This is
+a filter discovered in the same sample on which it is measured, with no
+mechanism proposed for it, and it is recorded as an observation rather than
+adopted as a rule.
+
 ---
 
 ## 6. Repository structure
@@ -304,6 +407,11 @@ behaviour was marginally superior, and the result should not be generalised.
 | [optimize_for_regime.py](optimize_for_regime.py) | conditions the ORB portfolio on volatility, the sole forecastable input |
 | [run_synth_backtest.py](run_synth_backtest.py) | evaluates the 8-window ORB portfolio across synthetic replicates |
 | [XAUUSD_SessionBreakout.mq5](XAUUSD_SessionBreakout.mq5) | MT5 expert advisor: the original 8-window portfolio |
+| [strategy_2026/ftmo_sim.py](strategy_2026/ftmo_sim.py) | FTMO against E8 on one daily series — static floor against trailing |
+| [strategy_2026/news_sim.py](strategy_2026/news_sim.py) | cost of the §4.3 release filter, by blackout scenario |
+| [strategy_2026/payout_sim.py](strategy_2026/payout_sim.py) | cash actually withdrawn from a funded account, including payout caps |
+| [strategy_2026/prop_sizing.py](strategy_2026/prop_sizing.py) | lot ladders under each rule set |
+| [strategy_2026/us_macro_releases.csv](strategy_2026/us_macro_releases.csv) | 109 observed release dates, so blackouts fall where they actually fell |
 | [strategy_2026/](strategy_2026/) | execution layer — 2026 EA, NY-anchored closure, preset switcher; see its own [README](strategy_2026/README.md) |
 | [tick_synth/](tick_synth/) | synthetic tick generator; see its own [README](tick_synth/README.md) |
 
@@ -322,6 +430,15 @@ parameters, permitting byte-identical reconstruction of a deleted tape.
 `matplotlib`. The expert advisor requires MetaTrader 5. `InpGMTOffsetHours`
 must correspond to the broker's server clock; an incorrect value causes the
 strategy to trade entirely different hours without any diagnostic.
+
+**Advisor state.** `OnInit` is not a once-per-deployment event: a restart, a
+reconnection, a recompilation and every change of chart timeframe all enter it.
+The advisor therefore reconstructs the day's state from the orders already
+resting on the server rather than re-arming from scratch, and persists the day's
+opening equity in a terminal global variable keyed by magic number. Without the
+first, a timeframe change duplicates the live bracket; without the second, the
+daily-loss baseline is re-sampled at each restart and the limit silently
+measures from the restart rather than from the day.
 
 ---
 
@@ -345,7 +462,14 @@ strategy to trade entirely different hours without any diagnostic.
 5. **Synthetic tapes measure dispersion and robustness only.** They are not
    instruments of discovery, and no parameter is fitted on them.
 
-6. Subjective confidence that a persistent, tradeable edge exists is
+6. **The sizing analysis of §5.5 is conditional, not independent.** Pass and
+   breach rates are frequencies over start dates within 2024–2026 — the same
+   window §5.3 shows does not replicate. They answer *how large a position this
+   return series tolerates*, not *whether the series will recur*. Should the
+   effect prove to be an artefact of the fitted window, no lot size in that
+   table is defensible.
+
+7. Subjective confidence that a persistent, tradeable edge exists is
    approximately 30%, with expected live performance nearer a profit factor of
    1.05 than the 1.20 measured in sample. The strategy is **not deployed**;
    forward testing to date is on demonstration accounts only.
