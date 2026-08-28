@@ -214,6 +214,11 @@ Latest live reading (2026-08-24): trailing vol **1.263**, spot ~4670 (up from
 | `RUNBOOK.md` | operating procedure |
 | `MANUAL_RULES.md` | manual execution rules |
 
+**Stale artifact:** a strategy spec page was published at
+`claude.ai/code/artifact/1c26af50-02aa-4ea5-b4d5-62f4da442603` **before** the
+2020-2023 test. It still shows PF 1.21 / Sharpe 2.73 and none of the negative
+findings. Either update it or do not share it.
+
 Engine detail: ticks stream into 5-second sub-bars keeping bid/ask extremes
 separately; signals on the bracket, exits resolved sub-bar by sub-bar; on a
 tie within one sub-bar the **stop** wins. Longs exit on the bid, shorts on the

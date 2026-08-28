@@ -162,6 +162,12 @@ int DayKeyOf(const datetime utc)
 }
 int UTCDayKey() { return DayKeyOf(UTCNow()); }
 
+//--- Terminal-persistent names. The day's opening equity is the only piece of
+//--- state no order carries, so it is the only thing that has to be stored.
+//--- Keyed by magic base so two instances never share a baseline.
+string DayKeyVarName()    { return StringFormat("SB2026_%I64u_daykey",  InpMagicBase); }
+string DayEquityVarName() { return StringFormat("SB2026_%I64u_starteq", InpMagicBase); }
+
 datetime UTCTodayAtHour(const int hour)
 {
    MqlDateTime dt;
@@ -294,6 +300,12 @@ int OnInit()
                   "(20:58-22:01) and will pay swap on ~66%% of days. Last bracket %02d:%02d.",
                   flatMin / 60, flatMin % 60, lastArm / 60, lastArm % 60);
 
+   //--- Re-init is not rare and is mostly not chosen: a restart, a reconnect,
+   //--- a recompile and an edit to the inputs all land here. Rebuild the
+   //--- day's state from the market BEFORE the first tick can re-arm anything.
+   RollDailyState(UTCDayKey());
+   AdoptExistingState();
+
    if(InpBaseLots < g_sym.LotsMin())
       PrintFormat("WARNING: InpBaseLots %.4f is under the broker minimum %.4f; orders will be raised.",
                   InpBaseLots, g_sym.LotsMin());
@@ -349,13 +361,33 @@ void RollDailyState(const int today)
 {
    if(g_equityDay == today)
       return;
-   g_equityDay      = today;
-   g_dayStartEquity = AccountInfoDouble(ACCOUNT_EQUITY);
-   g_haltedToday    = false;
+   g_equityDay   = today;
+   g_haltedToday = false;
+
+   //--- Re-sampling opening equity on every re-init walks the daily-loss
+   //--- baseline down with each restart: the halt would then measure from the
+   //--- restart rather than from the day, which is silently no protection at
+   //--- all. The halt FLAG needs no persistence - with the baseline correct,
+   //--- EnforceDailyLossHalt re-trips on the next tick by itself.
+   const string kDay = DayKeyVarName(), kEq = DayEquityVarName();
+   if(GlobalVariableCheck(kDay) && (int)GlobalVariableGet(kDay) == today
+      && GlobalVariableCheck(kEq) && GlobalVariableGet(kEq) > 0.0)
+   {
+      g_dayStartEquity = GlobalVariableGet(kEq);
+      PrintFormat("--- resumed UTC day (%d), start equity %.2f restored ---",
+                  today, g_dayStartEquity);
+   }
+   else
+   {
+      g_dayStartEquity = AccountInfoDouble(ACCOUNT_EQUITY);
+      GlobalVariableSet(kDay, (double)today);
+      GlobalVariableSet(kEq, g_dayStartEquity);
+      if(InpVerboseLog)
+         PrintFormat("--- new UTC day (%d), start equity %.2f ---", today, g_dayStartEquity);
+   }
+
    for(int i = 0; i < g_count; i++)
       g_win[i].armedDay = -1;
-   if(InpVerboseLog)
-      PrintFormat("--- new UTC day (%d), start equity %.2f ---", today, g_dayStartEquity);
 }
 
 void EnforceDailyLossHalt()
@@ -740,6 +772,117 @@ int CountOurPositions()
          n++;
    }
    return n;
+}
+
+//+------------------------------------------------------------------+
+//| Rebuild per-window state from what is already in the market.      |
+//|                                                                   |
+//| MT5 destroys and recreates the EA on a timeframe change, a symbol |
+//| change, a recompile, an edit to the inputs, and every terminal    |
+//| restart. Globals go back to their initialisers - the orders and   |
+//| positions do not, because they live on the server. Without this   |
+//| pass the EA sees an unarmed window, re-arms it, and stacks a      |
+//| second bracket at the SAME two prices. The stacked pairs then     |
+//| fill together on the break: N re-inits, N times the intended      |
+//| size, against a fixed daily loss limit. That is an account        |
+//| killer, and it fires on restarts nobody chose.                    |
+//|                                                                   |
+//| Nothing has to be persisted to undo it. Everything lost is        |
+//| recoverable from the market itself:                               |
+//|   hi / lo    ARE the pending prices - a BuyStop sits at hi        |
+//|   expiryUTC  recomputes from the window's own hour and length     |
+//|   armedDay   a live pending means this window armed today         |
+//|   doneDay    an open position means it has already traded         |
+//|                                                                   |
+//| Where the bracket cannot be reconstructed exactly - only one side |
+//| survived, or the window already filled - hi/lo are left at zero.  |
+//| SyncTakeProfit's width guard then leaves the take profit exactly  |
+//| as placed, which beats re-anchoring it to a width we guessed.     |
+//+------------------------------------------------------------------+
+void AdoptExistingState()
+{
+   const int today = UTCDayKey();
+   int adopted = 0, stale = 0, dupes = 0;
+
+   for(int i = 0; i < g_count; i++)
+   {
+      double hi = 0.0, lo = 0.0;
+      ulong  buyTicket = 0, sellTicket = 0;
+      int    pend = 0;
+
+      for(int k = OrdersTotal() - 1; k >= 0; k--)
+      {
+         const ulong t = OrderGetTicket(k);
+         if(t == 0) continue;
+         if(OrderGetString(ORDER_SYMBOL) != _Symbol) continue;
+         if((ulong)OrderGetInteger(ORDER_MAGIC) != g_win[i].magic) continue;
+
+         //--- an order that outlived a terminal outage: the daily flatten
+         //--- never got a tick to cancel it
+         const datetime setUTC = (datetime)OrderGetInteger(ORDER_TIME_SETUP)
+                                 - (datetime)(InpGMTOffsetHours * 3600);
+         if(DayKeyOf(setUTC) != today)
+         {
+            if(g_trade.OrderDelete(t))
+               stale++;
+            continue;
+         }
+
+         const long ty = OrderGetInteger(ORDER_TYPE);
+         if(ty != ORDER_TYPE_BUY_STOP && ty != ORDER_TYPE_SELL_STOP)
+            continue;
+
+         //--- Duplicates can only exist because an earlier build re-armed over
+         //--- a live bracket. Keep one of each side and delete the rest: this
+         //--- is the repair pass for damage already done.
+         const bool isBuy = (ty == ORDER_TYPE_BUY_STOP);
+         if((isBuy && buyTicket != 0) || (!isBuy && sellTicket != 0))
+         {
+            if(g_trade.OrderDelete(t))
+               dupes++;
+            continue;
+         }
+         if(isBuy)
+         {
+            buyTicket = t;
+            hi = OrderGetDouble(ORDER_PRICE_OPEN);
+         }
+         else
+         {
+            sellTicket = t;
+            lo = OrderGetDouble(ORDER_PRICE_OPEN);
+         }
+         pend++;
+      }
+
+      const ulong pos = FindPosition(g_win[i].magic);
+      if(pend == 0 && pos == 0)
+         continue;
+
+      g_win[i].armedDay  = today;
+      g_win[i].expiryUTC = UTCTodayAtHour(g_win[i].hour)
+                           + (datetime)(g_win[i].rangeMin * 60)
+                           + (datetime)(InpOrderExpiryHours * 3600);
+      if(pos != 0)
+         g_win[i].doneDay = today;
+      if(hi > 0.0 && lo > 0.0 && hi > lo)
+      {
+         g_win[i].hi = hi;
+         g_win[i].lo = lo;
+      }
+      adopted++;
+
+      PrintFormat("%s: adopted %d pending%s%s", g_win[i].name, pend,
+                  (pos != 0) ? " and an open position" : "",
+                  (g_win[i].hi > 0.0)
+                  ? StringFormat(", bracket %.2f-%.2f restored", g_win[i].lo, g_win[i].hi)
+                  : ", bracket not reconstructible - take profit left as placed");
+   }
+
+   if(adopted > 0 || stale > 0 || dupes > 0)
+      PrintFormat("Re-init: %d window(s) adopted, %d stale order(s) and %d duplicate(s) "
+                  "cancelled. Without this pass a second bracket would have been "
+                  "stacked on each adopted window.", adopted, stale, dupes);
 }
 
 //--- Close anything opened on an earlier UTC day. This is the backstop that
