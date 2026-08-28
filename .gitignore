@@ -31,3 +31,14 @@ venv/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ---------------------------------------------------------------------------
+# MetaTrader build output -- rebuild from the .mq5 with MetaEditor
+# ---------------------------------------------------------------------------
+*.ex5
+
+# ---------------------------------------------------------------------------
+# Trade-level dumps from the geometry sweep (~100 MB, regenerable, unreferenced)
+# ---------------------------------------------------------------------------
+strategy_2026/results/geo_sweep_trades.csv
+strategy_2026/results/geo_sweep_trades_oos.csv
